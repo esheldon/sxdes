@@ -15,3 +15,8 @@ runner = SepRunner(image, noise)
 cat = runner.cat
 seg = runner.seg
 ```
+
+TODO
+----
+
+Figure out why fluxerr_auto is always returned by sep as zero
