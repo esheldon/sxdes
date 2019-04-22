@@ -85,7 +85,7 @@ class SepRunner(object):
         objs, seg = sep.extract(
             self.image,
             DETECT_THRESH,
-            err=noise,
+            err=self.noise,
             segmentation_map=True,
             **SX_CONFIG
         )
@@ -98,7 +98,8 @@ class SepRunner(object):
         w,=np.where(
               (objs['a'] >= 0.0)
             & (objs['b'] >= 0.0)
-            & between(objs['theta'], -pi/2., pi/2., type='[]')
+            & (objs['theta'] >= -np.pi/2.)
+            & (objs['theta'] <=  np.pi/2.)
         )
 
         if w.size > 0:
@@ -152,7 +153,14 @@ class SepRunner(object):
             ('isoarea_image','f4'),
             ('iso_radius','f4'),
         ]
-        cat=eu.numpy_util.add_fields(objs, new_dt)
+
+        all_dt = objs.dtype.descr + new_dt
+        cat = np.zeros(objs.size, dtype=all_dt)
+
+        for d in objs.dtype.descr:
+            name=d[0]
+            cat[name] = objs[name]
+
         cat['number'] = np.arange(1,cat.size+1)
         cat['kron_radius'] = kron_radius
         cat['flux_auto'] = flux_auto
