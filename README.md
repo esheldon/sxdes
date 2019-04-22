@@ -19,4 +19,4 @@ seg = runner.seg
 TODO
 ----
 
-Figure out why fluxerr_auto is always returned by sep as zero
+Figure out why `fluxerr_auto` is always returned by sep as zero
