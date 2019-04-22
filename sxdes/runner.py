@@ -1,3 +1,10 @@
+"""
+TODO
+
+    - fluxerr_auto always comes back zero
+    - add windowed quantities
+
+"""
 import numpy as np
 import sep
 
@@ -90,6 +97,49 @@ class SepRunner(object):
             **SX_CONFIG
         )
 
+        auto_res = self._get_flux_auto(objs)
+
+        cat = self._add_fields(objs, seg, auto_res)
+
+        self._seg=seg
+        self._cat=cat
+
+    def _add_fields(self, objs, seg, auto_res):
+        flux_auto, fluxerr_auto, flux_radius, kron_radius = auto_res
+
+        new_dt=[
+            ('number','i4'),
+            ('kron_radius','f4'),
+            ('flux_auto','f4'),
+            ('fluxerr_auto','f4'),
+            ('flux_radius','f4'),
+            ('isoarea_image','f4'),
+            ('iso_radius','f4'),
+        ]
+
+        all_dt = objs.dtype.descr + new_dt
+        cat = np.zeros(objs.size, dtype=all_dt)
+
+        for d in objs.dtype.descr:
+            name=d[0]
+            cat[name] = objs[name]
+
+        cat['number'] = np.arange(1,cat.size+1)
+        cat['kron_radius'] = kron_radius
+        cat['flux_auto'] = flux_auto
+        cat['fluxerr_auto'] = fluxerr_auto
+        cat['flux_radius'] = flux_radius
+
+        # use the number of pixels in the seg map as the iso area
+        for i in range(objs.size):
+            w=np.where(seg == (i+1))
+            cat['isoarea_image'][i] = w[0].size
+
+        cat['iso_radius'] = np.sqrt(cat['isoarea_image'].clip(min=1)/np.pi)
+        return cat
+
+
+    def _get_flux_auto(self, objs):
         flux_auto=np.zeros(objs.size)-9999.0
         fluxerr_auto=np.zeros(objs.size)-9999.0
         flux_radius=np.zeros(objs.size)-9999.0
@@ -128,10 +178,6 @@ class SepRunner(object):
                 )
             objs['flag'][w] |= flag_auto
 
-            # what we did in DES, but note threshold above
-            # is 1 as opposed to wide survey. deep survey
-            # was even lower, 0.8?
-
             flux_radius[w], frflag = sep.flux_radius(
                 self.image,
                 objs['x'][w],
@@ -143,38 +189,4 @@ class SepRunner(object):
             )
             objs['flag'][w] |= frflag  # combine flags into 'flag'
 
-        ncut=2 # need this to make sure array
-        new_dt=[
-            ('number','i4'),
-            ('kron_radius','f4'),
-            ('flux_auto','f4'),
-            ('fluxerr_auto','f4'),
-            ('flux_radius','f4'),
-            ('isoarea_image','f4'),
-            ('iso_radius','f4'),
-        ]
-
-        all_dt = objs.dtype.descr + new_dt
-        cat = np.zeros(objs.size, dtype=all_dt)
-
-        for d in objs.dtype.descr:
-            name=d[0]
-            cat[name] = objs[name]
-
-        cat['number'] = np.arange(1,cat.size+1)
-        cat['kron_radius'] = kron_radius
-        cat['flux_auto'] = flux_auto
-        cat['fluxerr_auto'] = fluxerr_auto
-        cat['flux_radius'] = flux_radius
-
-
-        # use the number of pixels in the seg map as the iso area
-        for i in range(objs.size):
-            w=np.where(seg == (i+1))
-            cat['isoarea_image'][i] = w[0].size
-
-        cat['iso_radius'] = np.sqrt(cat['isoarea_image'].clip(min=1)/np.pi)
-
-        self._seg=seg
-        self._cat=cat
-
+        return flux_auto, fluxerr_auto, flux_radius, kron_radius
