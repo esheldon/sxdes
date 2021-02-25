@@ -47,9 +47,9 @@ def run_sep(image, noise, config=SX_CONFIG, thresh=DETECT_THRESH):
         A representation of the noise in the image
     config: dict, optional
         Config parameters for the sep run. Default are the DES Y6 settings,
-        which can be found in sxdes.runner.SX_CONFIG
+        which can be found in sxdes.SX_CONFIG
     thresh: float, optional
-        The threshold for detection, default sxdes.runner.DETECT_THRESH
+        The threshold for detection, default sxdes.DETECT_THRESH
 
     Returns
     -------
@@ -71,9 +71,9 @@ class SepRunner(object):
         A representation of the noise in the image
     config: dict, optional
         Config parameters for the sep run. Default are the DES Y6 settings,
-        which can be found in sxdes.runner.SX_CONFIG
+        which can be found in sxdes.SX_CONFIG
     thresh: float, optional
-        The threshold for detection, default sxdes.runner.DETECT_THRESH
+        The threshold for detection, default sxdes.DETECT_THRESH
 
     The resulting catalog and seg map can be gotten through the .cat and .seg
     attributes
