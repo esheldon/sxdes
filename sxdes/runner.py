@@ -7,6 +7,7 @@ TODO
 """
 import numpy as np
 import sep
+import copy
 
 # used half light radius
 PHOT_FLUXFRAC = 0.5
@@ -83,9 +84,9 @@ class SepRunner(object):
         self.noise = noise
 
         if config is None:
-            self.config = SX_CONFIG.copy()
+            self.config = copy.deepcopy(SX_CONFIG)
         else:
-            self.config = config.copy()
+            self.config = copy.deepcopy(config)
 
         self.thresh = thresh
 
