@@ -35,7 +35,7 @@ SX_CONFIG = {
 }
 
 
-def run_sep(image, noise, config=SX_CONFIG, thresh=DETECT_THRESH):
+def run_sep(image, noise, config=None, thresh=DETECT_THRESH):
     """
     Run sep on the image using DES parameters
 
@@ -78,10 +78,15 @@ class SepRunner(object):
     The resulting catalog and seg map can be gotten through the .cat and .seg
     attributes
     """
-    def __init__(self, image, noise, config=SX_CONFIG, thresh=DETECT_THRESH):
+    def __init__(self, image, noise, config=None, thresh=DETECT_THRESH):
         self.image = image
         self.noise = noise
-        self.config = config.copy()
+
+        if config is None:
+            self.config = SX_CONFIG.copy()
+        else:
+            self.config = config.copy()
+
         self.thresh = thresh
 
         self._run_sep()
