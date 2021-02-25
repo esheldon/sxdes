@@ -11,8 +11,8 @@ import sep
 # used half light radius
 PHOT_FLUXFRAC = 0.5
 
-DETECT_THRESH=0.8
-SX_CONFIG={
+DETECT_THRESH = 0.8
+SX_CONFIG = {
 
     'deblend_cont': 0.00001,
 
@@ -34,7 +34,8 @@ SX_CONFIG={
     ]),
 }
 
-def run_sep(image, noise):
+
+def run_sep(image, noise, config=SX_CONFIG, thresh=DETECT_THRESH):
     """
     Run sep on the image using DES parameters
 
@@ -44,6 +45,11 @@ def run_sep(image, noise):
         The image to extract
     noise: float or array
         A representation of the noise in the image
+    config: dict, optional
+        Config parameters for the sep run. Default are the DES Y6 settings,
+        which can be found in sxdes.runner.SX_CONFIG
+    thresh: float, optional
+        The threshold for detection, default sxdes.runner.DETECT_THRESH
 
     Returns
     -------
@@ -51,7 +57,7 @@ def run_sep(image, noise):
         The catalog and seg map
     """
 
-    runner = SepRunner(image, noise)
+    runner = SepRunner(image, noise, config=config, thresh=thresh)
     return runner.cat, runner.seg
 
 
@@ -63,13 +69,20 @@ class SepRunner(object):
         The image to extract
     noise: float or array
         A representation of the noise in the image
+    config: dict, optional
+        Config parameters for the sep run. Default are the DES Y6 settings,
+        which can be found in sxdes.runner.SX_CONFIG
+    thresh: float, optional
+        The threshold for detection, default sxdes.runner.DETECT_THRESH
 
     The resulting catalog and seg map can be gotten through the .cat and .seg
     attributes
     """
-    def __init__(self, image, noise):
+    def __init__(self, image, noise, config=SX_CONFIG, thresh=DETECT_THRESH):
         self.image = image
         self.noise = noise
+        self.config = config.copy()
+        self.thresh = thresh
 
         self._run_sep()
 
@@ -87,44 +100,43 @@ class SepRunner(object):
         """
         return self._seg
 
-
     def _run_sep(self):
         objs, seg = sep.extract(
             self.image,
-            DETECT_THRESH,
+            self.thresh,
             err=self.noise,
             segmentation_map=True,
-            **SX_CONFIG
+            **self.config
         )
 
         auto_res = self._get_flux_auto(objs)
 
         cat = self._add_fields(objs, seg, auto_res)
 
-        self._seg=seg
-        self._cat=cat
+        self._seg = seg
+        self._cat = cat
 
     def _add_fields(self, objs, seg, auto_res):
         flux_auto, fluxerr_auto, flux_radius, kron_radius = auto_res
 
-        new_dt=[
-            ('number','i4'),
-            ('kron_radius','f4'),
-            ('flux_auto','f4'),
-            ('fluxerr_auto','f4'),
-            ('flux_radius','f4'),
-            ('isoarea_image','f4'),
-            ('iso_radius','f4'),
+        new_dt = [
+            ('number', 'i4'),
+            ('kron_radius', 'f4'),
+            ('flux_auto', 'f4'),
+            ('fluxerr_auto', 'f4'),
+            ('flux_radius', 'f4'),
+            ('isoarea_image', 'f4'),
+            ('iso_radius', 'f4'),
         ]
 
         all_dt = objs.dtype.descr + new_dt
         cat = np.zeros(objs.size, dtype=all_dt)
 
         for d in objs.dtype.descr:
-            name=d[0]
+            name = d[0]
             cat[name] = objs[name]
 
-        cat['number'] = np.arange(1,cat.size+1)
+        cat['number'] = np.arange(1, cat.size+1)
         cat['kron_radius'] = kron_radius
         cat['flux_auto'] = flux_auto
         cat['fluxerr_auto'] = fluxerr_auto
@@ -132,24 +144,21 @@ class SepRunner(object):
 
         # use the number of pixels in the seg map as the iso area
         for i in range(objs.size):
-            w=np.where(seg == (i+1))
+            w = np.where(seg == (i+1))
             cat['isoarea_image'][i] = w[0].size
 
         cat['iso_radius'] = np.sqrt(cat['isoarea_image'].clip(min=1)/np.pi)
         return cat
 
-
     def _get_flux_auto(self, objs):
-        flux_auto=np.zeros(objs.size)-9999.0
-        fluxerr_auto=np.zeros(objs.size)-9999.0
-        flux_radius=np.zeros(objs.size)-9999.0
-        kron_radius=np.zeros(objs.size)-9999.0
+        flux_auto = np.zeros(objs.size)-9999.0
+        fluxerr_auto = np.zeros(objs.size)-9999.0
+        flux_radius = np.zeros(objs.size)-9999.0
+        kron_radius = np.zeros(objs.size)-9999.0
 
-        w,=np.where(
-              (objs['a'] >= 0.0)
-            & (objs['b'] >= 0.0)
-            & (objs['theta'] >= -np.pi/2.)
-            & (objs['theta'] <=  np.pi/2.)
+        w, = np.where(
+            (objs['a'] >= 0.0) & (objs['b'] >= 0.0) &
+            (objs['theta'] >= -np.pi/2.) & (objs['theta'] <= np.pi/2.)
         )
 
         if w.size > 0:
