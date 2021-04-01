@@ -36,7 +36,7 @@ SX_CONFIG = {
 }
 
 
-def run_sep(image, noise, config=None, thresh=DETECT_THRESH):
+def run_sep(image, noise, mask=None, config=None, thresh=DETECT_THRESH):
     """
     Run sep on the image using DES parameters
 
@@ -46,6 +46,8 @@ def run_sep(image, noise, config=None, thresh=DETECT_THRESH):
         The image to extract
     noise: float or array
         A representation of the noise in the image
+    mask: float or array
+        A mask for detection; True values are considered masked
     config: dict, optional
         Config parameters for the sep run. Default are the DES Y6 settings,
         which can be found in sxdes.SX_CONFIG
@@ -58,7 +60,7 @@ def run_sep(image, noise, config=None, thresh=DETECT_THRESH):
         The catalog and seg map
     """
 
-    runner = SepRunner(image, noise, config=config, thresh=thresh)
+    runner = SepRunner(image, noise, mask=mask, config=config, thresh=thresh)
     return runner.cat, runner.seg
 
 
@@ -79,9 +81,17 @@ class SepRunner(object):
     The resulting catalog and seg map can be gotten through the .cat and .seg
     attributes
     """
-    def __init__(self, image, noise, config=None, thresh=DETECT_THRESH):
+    def __init__(self, image, noise, mask=None, config=None,
+                 thresh=DETECT_THRESH):
         self.image = image
         self.noise = noise
+        if mask is not None:
+            if mask.shape != image.shape:
+                raise ValueError(
+                    'mask with shape %s does not '
+                    'match image %s' % (mask.shape, image.shape)
+                )
+        self.mask = mask
 
         if config is None:
             self.config = copy.deepcopy(SX_CONFIG)
@@ -111,6 +121,7 @@ class SepRunner(object):
             self.image,
             self.thresh,
             err=self.noise,
+            mask=self.mask,
             segmentation_map=True,
             **self.config
         )
