@@ -61,6 +61,7 @@ def test_mask():
         cat, seg = sxdes.run_sep(image, noise, mask=mask)
         assert cat.size == 0
 
+
 def test_errors():
     rng = np.random.RandomState(60970)
 
