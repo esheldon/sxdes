@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 import sxdes
 
@@ -49,3 +50,22 @@ def test_detect():
         row, col = cat['y'][s], cat['x'][s]
         assert abs(row - cen[0]) < 1
         assert abs(col - cen[1]) < 1
+
+
+def test_mask():
+    rng = np.random.RandomState(60970)
+
+    for i in range(10):
+        image, noise, cen = _make_image(rng)
+        mask = np.ones(image.shape, dtype=bool)
+        cat, seg = sxdes.run_sep(image, noise, mask=mask)
+        assert cat.size == 0
+
+
+def test_errors():
+    rng = np.random.RandomState(60970)
+
+    image, noise, cen = _make_image(rng)
+    mask = np.ones((2, 2), dtype=bool)
+    with pytest.raises(ValueError):
+        cat, seg = sxdes.run_sep(image, noise, mask=mask)
