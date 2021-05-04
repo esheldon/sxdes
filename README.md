@@ -13,6 +13,10 @@ cat, seg = sxdes.run_sep(image, noise)
 cat, seg = sxdes.run_sep(image, noise, mask=mask)
 ```
 
+Notes
+-----
+The image must have the background subtracted
+
 TODO
 ----
 
