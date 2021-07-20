@@ -69,3 +69,16 @@ def test_errors():
     mask = np.ones((2, 2), dtype=bool)
     with pytest.raises(ValueError):
         cat, seg = sxdes.run_sep(image, noise, mask=mask)
+
+
+def test_seg():
+    rng = np.random.RandomState(60970)
+
+    for i in range(10):
+        image, noise, cen = _make_image(rng)
+        cat, seg = sxdes.run_sep(image, noise)
+        assert cat.size > 0
+
+        for i in range(1, cat.size+1):
+            msk = seg == i
+            assert cat["iso_area"][i] == np.sum(msk)
