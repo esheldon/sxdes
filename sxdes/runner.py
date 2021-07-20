@@ -160,9 +160,9 @@ class SepRunner(object):
         cat['flux_radius'] = flux_radius
 
         # use the number of pixels in the seg map as the iso area
-        for i in range(objs.size):
-            w = np.where(seg == (i+1))
-            cat['isoarea_image'][i] = w[0].size
+        be = np.arange(np.max(seg)+2)-0.5
+        h, _ = np.histogram(seg.ravel(), bins=be)
+        cat['isoarea_image'] = h[1:]
 
         cat['iso_radius'] = np.sqrt(cat['isoarea_image'].clip(min=1)/np.pi)
         return cat
