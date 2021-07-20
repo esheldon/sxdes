@@ -81,4 +81,4 @@ def test_seg():
 
         for i in range(1, cat.size+1):
             msk = seg == i
-            assert cat["iso_area"][i-1] == np.sum(msk)
+            assert cat["isoarea_image"][i-1] == np.sum(msk)
