@@ -15,7 +15,7 @@ PHOT_FLUXFRAC = 0.5
 DETECT_THRESH = 0.8
 SX_CONFIG = {
 
-    'deblend_cont': 0.00001,
+    'deblend_cont': 0.001,
 
     'deblend_nthresh': 64,
 
