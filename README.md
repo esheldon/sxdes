@@ -1,5 +1,5 @@
 # sxdes
-Run the sep code with DES settings
+Run the sep code with DES Y6 settings.
 
 Examples
 ---------
