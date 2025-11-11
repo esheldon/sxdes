@@ -52,6 +52,16 @@ def test_detect():
         assert abs(col - cen[1]) < 1
 
 
+def test_error_propagates():
+    rng = np.random.RandomState(60970)
+
+    for i in range(10):
+        image, noise, cen = _make_image(rng)
+        cat, seg = sxdes.run_sep(image, noise)
+
+        assert np.any(cat['fluxerr_auto'] > 0)
+
+
 def test_mask():
     rng = np.random.RandomState(60970)
 
