@@ -201,6 +201,7 @@ class SepRunner(object):
                     objs['theta'][w],
                     aper_rad[w],
                     subpix=1,
+                    err=self.noise,
                 )
             objs['flag'][w] |= flag_auto
 
